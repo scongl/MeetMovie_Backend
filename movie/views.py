@@ -167,11 +167,11 @@ class MovieRatingView(View):
                 author = i.author
                 info = {"value": i.value,
                         "content": i.content,
-                        "author": {"username": author.username,
-                                   "nickname": author.nickname,
-                                   "avatar": author.avatar,
-                                   "id": author.id
-                                   }
+                        "author_details": {"username": author.username,
+                                           "nickname": author.nickname,
+                                           "avatar": author.avatar,
+                                           "id": author.id
+                                           }
                         }
                 if i.author == request.user:
                     t = info
@@ -185,11 +185,11 @@ class MovieRatingView(View):
                 author = i.author
                 info = {"value": i.value,
                         "content": i.content,
-                        "author": {"username": author.username,
-                                   "nickname": author.nickname,
-                                   "avatar": author.avatar,
-                                   "id": author.id
-                                   }
+                        "author_details": {"username": author.username,
+                                           "nickname": author.nickname,
+                                           "avatar": author.avatar,
+                                           "id": author.id
+                                           }
                         }
                 rating_list.append(info)
             dic["rating"] = rating_list
@@ -216,7 +216,7 @@ class MovieRatingView(View):
         user_id = request.user.id
 
         r = Rating.objects.filter(movie_id=movie_id, author_id=user_id)
-        if len(r) == 0:                     # 未提交过评分
+        if len(r) == 0:  # 未提交过评分
             Rating.objects.create(author_id=user_id, movie_id=movie_id, value=value, content=content)
 
             movie = Movie.objects.get(id=movie_id)
@@ -228,7 +228,7 @@ class MovieRatingView(View):
 
             return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
 
-        else:                               # 修改评分和评论
+        else:  # 修改评分和评论
             rating = r.first()
             old_value = rating.value
             rating.value = value
