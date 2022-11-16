@@ -143,7 +143,7 @@ class MovieReviewView(View):
         if type(title) != str or type(content) != str:
             return HttpResponse(content=json.dumps({"status": "参数不正确"}, ensure_ascii=False))
 
-        Review.objects.create(title=title, content=content, user_info=request.user, movie_id=movie_id)
+        Review.objects.create(title=title, content=content, author=request.user, movie_id=movie_id)
 
         return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
 

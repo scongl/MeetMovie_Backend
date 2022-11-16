@@ -46,7 +46,7 @@ class Command(BaseCommand):
             for user in users:
                 value = random.randint(1, 10)
                 content = user.username
-                Rating.objects.create(movie=movie, user_info=user, value=value, content=content)
+                Rating.objects.create(movie=movie, author=user, value=value, content=content)
                 movie.vote_sum += 1
                 movie.vote_count += value
                 movie.save()
@@ -56,11 +56,11 @@ class Command(BaseCommand):
             for user in users:
                 title = user.username
                 content = user.username
-                review = Review.objects.create(title=title, content=content, user_info=user, movie=movie)
+                review = Review.objects.create(title=title, content=content, author=user, movie=movie)
 
                 reply_users = random.sample(user_pool, 5)
                 for reply_user in reply_users:
-                    Reply.objects.create(content=reply_user.username, user_info=reply_user, review=review)
+                    Reply.objects.create(content=reply_user.username, author=reply_user, review=review)
 
     def handle(self, *args, **options):
         # 首先删除之前表中的所有数据

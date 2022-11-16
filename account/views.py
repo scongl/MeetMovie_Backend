@@ -79,7 +79,7 @@ class UserReviewView(View):
         if len(user_set) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
 
-        reviews = Review.objects.filter(user_info_id=user_id)
+        reviews = Review.objects.filter(author_id=user_id)
 
         author = user_set.first()
 
