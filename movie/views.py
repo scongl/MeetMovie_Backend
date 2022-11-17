@@ -169,16 +169,15 @@ class MovieView(View):
         if len(Movie.objects.filter(id=movie_id)) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
 
-        dic = Movie.objects.values().get(id=movie_id)
+        dic = Movie.objects.get(id=movie_id).to_dict()
 
-        genres = Genre.objects.filter(movie=movie_id).distinct().values()
+        genres = Genre.objects.filter(movie=movie_id).distinct()
         genre_list = []
 
         for i in genres:
-            genre_list.append(i)
+            genre_list.append(i.to_dict())
 
         dic["genres"] = genre_list
-        dic["vote_average"] = dic["vote_sum"] / dic["vote_count"] if dic["vote_count"] > 0 else 0.0
 
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
@@ -232,33 +231,29 @@ class MovieReviewView(View):
         if len(Movie.objects.filter(id=movie_id)) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
 
-        reviews = Review.objects.filter(movie_id=movie_id).distinct().values()
+        reviews = Review.objects.filter(movie_id=movie_id).distinct()
 
         review_list = []
 
         for i in reviews:
-            user = UserInfo.objects.get(comment=i.get("id"))
+            user = UserInfo.objects.get(review=i.id)
+            review_dic = i.to_dict()
 
-            i["author_details"] = {"username": user.username, "nickname": user.nickname,
-                                   "id": user.id, "avatar": user.avatar}
+            review_dic["author_details"] = {"username": user.username, "nickname": user.nickname,
+                                            "id": user.id, "avatar": user.avatar}
 
-            # 将datetime类转换为字符串
-            i["update_at"] = i["update_at"].strftime("%Y-%m-%d %H:%M:%S")
-            i["create_at"] = i["create_at"].strftime("%Y-%m-%d %H:%M:%S")
-
-            replies = Reply.objects.filter(review_id=i.get("id"))
+            replies = Reply.objects.filter(review_id=i.id)
             reply_list = []
             for j in replies:
-                t = {"content": j.content, "create_at": j.create_at.strftime("%Y-%m-%d %H:%M:%S"),
-                     "update_at": j.update_at.strftime("%Y-%m-%d %H:%M:%S")}
+                reply_dic = j.to_dict()
                 author = j.author
-                t["author_details"] = {"username": author.username, "nickname": author.nickname,
-                                       "id": author.id, "avatar": author.avatar}
-                reply_list.append(t)
+                reply_dic["author_details"] = {"username": author.username, "nickname": author.nickname,
+                                               "id": author.id, "avatar": author.avatar}
+                reply_list.append(reply_dic)
 
-            i["replies"] = reply_list
+            review_dic["replies"] = reply_list
 
-            review_list.append(i)
+            review_list.append(review_dic)
 
         dic = {"reviews": review_list, "id": movie_id}
 
@@ -303,14 +298,12 @@ class MovieRatingView(View):
             t = None
             for i in ratings:
                 author = i.author
-                info = {"value": i.value,
-                        "content": i.content,
-                        "author_details": {"username": author.username,
-                                           "nickname": author.nickname,
-                                           "avatar": author.avatar,
-                                           "id": author.id
-                                           }
-                        }
+
+                info = i.to_dict()
+
+                info["author_details"] = {"username": author.username, "nickname": author.nickname,
+                                          "avatar": author.avatar, "id": author.id}
+
                 if i.author == request.user:
                     t = info
 
@@ -321,15 +314,11 @@ class MovieRatingView(View):
         else:
             for i in ratings:
                 author = i.author
-                info = {"value": i.value,
-                        "content": i.content,
-                        "author_details": {"username": author.username,
-                                           "nickname": author.nickname,
-                                           "avatar": author.avatar,
-                                           "id": author.id
-                                           }
-                        }
+                info = i.to_dict()
+                info["author_details"] = {"username": author.username, "nickname": author.nickname,
+                                          "avatar": author.avatar, "id": author.id}
                 rating_list.append(info)
+
             dic["rating"] = rating_list
             dic["current_user"] = None
 
@@ -356,12 +345,10 @@ class MovieRatingView(View):
         r = Rating.objects.filter(movie_id=movie_id, author_id=user_id)
         if len(r) == 0:  # 未提交过评分
             Rating.objects.create(author_id=user_id, movie_id=movie_id, value=value, content=content)
-
             movie = Movie.objects.get(id=movie_id)
 
             movie.vote_count += 1
             movie.vote_sum += value
-
             movie.save()
 
             return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
@@ -371,6 +358,7 @@ class MovieRatingView(View):
             old_value = rating.value
             rating.value = value
             rating.content = content
+            rating.save()
 
             movie = Movie.objects.get(id=movie_id)
             movie.vote_sum += value - old_value
@@ -394,10 +382,8 @@ class MovieRatingView(View):
         rating.delete()
 
         movie = Movie.objects.get(id=movie_id)
-
         movie.vote_count -= 1
         movie.vote_sum -= value
-
         movie.save()
 
         return HttpResponse(content=json.dumps({"status": "删除评分成功"}, ensure_ascii=False))
@@ -411,5 +397,3 @@ class GenreView(View):
             genre_list.append(i.to_dict())
 
         return HttpResponse(content=json.dumps({"genres": genre_list}, ensure_ascii=False))
-
-

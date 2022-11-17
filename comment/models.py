@@ -10,8 +10,13 @@ class Rating(models.Model):
     ]
     value = models.SmallIntegerField(choices=VALUE_CHOICES)                 # 提交的评分，十分制
     content = models.CharField(max_length=350, blank=True)                  # 附上的短评
+
     author = models.ForeignKey(UserInfo, on_delete=models.CASCADE)       # 评论所属用户
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)              # 所评分的电影
+
+    def to_dict(self):
+        d = {"value": self.value, "content": self.content}
+        return d
 
 
 class Review(models.Model):
