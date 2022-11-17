@@ -47,11 +47,11 @@ class AllMovieView(View):
         return [Q(genres__in=genre_id_list)]
 
     def language_filter(self, filter_data: dict):
-        languages = filter_data.get('languages')
-        if languages is None:
+        language = filter_data.get('language')
+        if language is None:
             return []
-        language_id_list = [i.get('id') for i in languages]
-        return [Q(languages__in=language_id_list)]
+
+        return [Q(languages__name__in=language)]
 
     def rating_filter(self, filter_data: dict):
         min_rating = filter_data.get('min_rating')
