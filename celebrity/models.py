@@ -20,7 +20,7 @@ class Celebrity(models.Model):
     def to_dict(self):
         d = {"celebrity_name": self.celebrity_name, "biography": self.biography, "image": self.image,
              "birthday": self.birthday, "place_of_birth": self.place_of_birth, "gender": self.gender,
-             "career": self.career}
+             "career": self.career, "id": self.id}
         return d
 
 
