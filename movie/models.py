@@ -5,12 +5,19 @@ from celebrity.models import Celebrity
 class Genre(models.Model):
     name = models.CharField(max_length=20)          # 标签类型
 
+    def to_dict(self):
+        return {"id": self.id, "name": self.name}
+
+
+class Language(models.Model):
+    name = models.CharField(max_length=20)          # 语言
+
 
 class Movie(models.Model):
     movie_name = models.CharField(max_length=60)
     overview = models.TextField()
-    release_date = models.CharField(max_length=20)
-    duration = models.CharField(max_length=20)                                  # 时长，形式类似1H30M, 2H0M等表示小时和分钟
+    release_date = models.DateField()
+    duration = models.SmallIntegerField()                                       # 时长
     image = models.CharField(max_length=2047)                                   # 封面图片url，长度大于4000一般使用TextField
     region = models.CharField(max_length=60)                                    # 制片国家/地区(可能有多个，以'/'隔开)
     vote_sum = models.BigIntegerField(default=0)                                                # 评分总和
@@ -18,6 +25,15 @@ class Movie(models.Model):
 
     celebrities = models.ManyToManyField(Celebrity, through="Position")         # 电影和演员为多对多关系,指定中间表为Position
     genres = models.ManyToManyField(Genre)                                      # 与标签形成多对多关系
+    languages = models.ManyToManyField(Language)                                # 语言
+
+    def to_dict(self):
+        d = {"id": self.id, "movie_name": self.movie_name, "image": self.image, "region": self.region,
+             "vote_sum": self.vote_sum, "vote_count": self.vote_count, "duration": str(self.duration) + "分钟",
+             "vote_average": self.vote_sum / self.vote_count if self.vote_count != 0 else 0.0,
+             "overview": self.overview, "release_date": self.release_date.strftime("%Y-%m-%d")}
+
+        return d
 
 
 class Position(models.Model):

@@ -1,5 +1,8 @@
 import json
+import math
+import re
 
+from django.db.models import Q, F
 from django.http import HttpResponse
 from django.views import View
 from movie.models import Movie, Position, Genre, MovieImage, MovieTrailer
@@ -9,21 +12,156 @@ from account.models import UserInfo
 
 
 class AllMovieView(View):
-    def get(self, request):
-        movies_info = Movie.objects.values()
-        movie_list = []
-        for i in movies_info:
-            i['vote_average'] = i["vote_sum"] / i["vote_count"] if i["vote_count"] > 0 else 0.0
+    # def get(self, request):
+    #     movies_info = Movie.objects.values()
+    #     movie_list = []
+    #     for i in movies_info:
+    #         i['vote_average'] = i["vote_sum"] / i["vote_count"] if i["vote_count"] > 0 else 0.0
+    #
+    #         genres = Genre.objects.filter(movie=i.get("id")).distinct().values()
+    #         genre_list = []
+    #         for j in genres:
+    #             genre_list.append(j)
+    #
+    #         i["genres"] = genre_list
+    #         movie_list.append(i)
+    #
+    #     return HttpResponse(content=json.dumps(movie_list, ensure_ascii=False))
 
-            genres = Genre.objects.filter(movie=i.get("id")).distinct().values()
+    def release_date_filter(self, filter_data: dict):
+        release_date_gap = filter_data.get('release_date_gap')
+        if release_date_gap is None:
+            return []
+
+        from_date = release_date_gap[0]
+        end_date = release_date_gap[1]
+
+        return [Q(release_date__gte=from_date), Q(release_date__lte=end_date)]
+
+    def genres_filter(self, filter_data: dict):
+        genres = filter_data.get('genres')
+        if genres is None:
+            return []
+        genre_id_list = [i.get('id') for i in genres]
+
+        return [Q(genres__in=genre_id_list)]
+
+    def language_filter(self, filter_data: dict):
+        languages = filter_data.get('languages')
+        if languages is None:
+            return []
+        language_id_list = [i.get('id') for i in languages]
+        return [Q(languages__in=language_id_list)]
+
+    def rating_filter(self, filter_data: dict):
+        min_rating = filter_data.get('min_rating')
+        if min_rating is None:
+            return []
+
+        return [Q(vote_sum__gte=F('vote_count') * min_rating)]
+
+    def duration_filter(self, filter_data: dict):
+        duration_gap = filter_data.get('duration_gap')
+        if duration_gap is None:
+            return []
+
+        min_value = duration_gap[0]
+        max_value = duration_gap[1]
+
+        return [Q(duration__gte=min_value), Q(duration__lte=max_value)]
+
+    def post(self, request):
+        info = json.loads(request.body)
+        limit = info.get('limit')
+        page = info.get('offset')
+
+        range_at = info.get('range_at')
+        filter_data = info.get('filter')
+
+        if not all([limit, page]):
+            return HttpResponse(content=json.dumps({"status": "缺少部分参数"}, ensure_ascii=False))
+
+        if type(limit) != int or type(page) != int or limit <= 0 or page <= 0:
+            return HttpResponse(content=json.dumps({"status": "参数错误"}, ensure_ascii=False))
+
+        filter_list = self.genres_filter(filter_data) + self.rating_filter(filter_data) + \
+                      self.duration_filter(filter_data) + self.release_date_filter(filter_data) + \
+                      self.language_filter(filter_data)
+
+        satisfied_movie = Movie.objects.filter(*filter_list)
+        start = limit * (page - 1)
+        total_item = satisfied_movie.count()
+        total_page = math.ceil(total_item / limit)
+
+        if start > total_item:
+            return HttpResponse(content=json.dumps({"status": "超出数据范围"}, ensure_ascii=False))
+
+        end = min(start + limit, total_item)
+
+        if range_at == 0:
+            movie_info = Movie.objects.filter(*filter_list)[start: end]
+        elif range_at == 1:
+            movie_info = Movie.objects.filter(*filter_list).order_by("-release_date")[start: end]
+        else:
+            movie_info = Movie.objects.filter(*filter_list). \
+                             order_by((F('vote_sum') / F('vote_count')).desc())[start: end]
+
+        movie_list = []
+        for i in movie_info:
+            t = i.to_dict()
+            genres = Genre.objects.filter(movie=i.id).distinct().values()
             genre_list = []
             for j in genres:
                 genre_list.append(j)
 
-            i["genres"] = genre_list
-            movie_list.append(i)
+            t["genres"] = genre_list
+            movie_list.append(t)
 
-        return HttpResponse(content=json.dumps(movie_list, ensure_ascii=False))
+        meta = {"total_page": total_page, "total_item": total_item, "current_page": page}
+
+        dic = {"meta": meta, "movies": movie_list}
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
+
+
+class MovieSearchView(View):
+    def get(self, request):
+        limit = request.GET.get("limit")
+        page = request.GET.get("offset")
+        query = request.GET.get("query")
+
+        if not all([limit, page, query]):
+            return HttpResponse(content=json.dumps({"status": "缺少部分参数"}, ensure_ascii=False))
+
+        try:
+            limit = int(limit)
+            page = int(page)
+        except ValueError:
+            return HttpResponse(content=json.dumps({"status": "参数类型错误"}, ensure_ascii=False))
+
+        if limit <= 0 or page <= 0:
+            return HttpResponse(content=json.dumps({"status": "参数错误"}, ensure_ascii=False))
+
+        start = limit * (page - 1)
+        total_item = Movie.objects.filter(movie_name__contains=query).count()
+        total_page = math.ceil(total_item / limit)
+
+        if start > total_item:
+            return HttpResponse(content=json.dumps({"status": "超出数据范围"}, ensure_ascii=False))
+
+        end = min(start + limit, total_item)
+
+        movie_info = Movie.objects.filter(movie_name__contains=query)[start: end]
+        movie_list = []
+
+        for i in movie_info:
+            movie_list.append(i.to_dict())
+
+        meta = {"total_page": total_page, "total_item": total_item, "current_page": page}
+
+        dic = {"meta": meta, "movies": movie_list}
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
 
 class MovieView(View):
@@ -78,11 +216,11 @@ class MovieCelebritiesView(View):
         if len(Movie.objects.filter(id=movie_id)) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
 
-        celebrity_info = Celebrity.objects.filter(position__movie_id=movie_id).distinct().values()
+        celebrity_info = Celebrity.objects.filter(position__movie_id=movie_id).distinct()
         celebrity_list = []
 
         for i in celebrity_info:
-            celebrity_list.append(i)
+            celebrity_list.append(i.to_dict())
 
         dic = {"id": movie_id, "celebrities": celebrity_list}
 
@@ -263,3 +401,15 @@ class MovieRatingView(View):
         movie.save()
 
         return HttpResponse(content=json.dumps({"status": "删除评分成功"}, ensure_ascii=False))
+
+
+class GenreView(View):
+    def get(self, request):
+        genres = Genre.objects.all()
+        genre_list = []
+        for i in genres:
+            genre_list.append(i.to_dict())
+
+        return HttpResponse(content=json.dumps({"genres": genre_list}, ensure_ascii=False))
+
+

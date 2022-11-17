@@ -17,7 +17,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+
 from comment.views import ReplyView
+from movie.views import MovieSearchView, GenreView
+from celebrity.views import CelebritySearchView
 
 import account.urls
 import account.views
@@ -35,6 +38,9 @@ urlpatterns = [
     path("review/", include(comment.urls)),
 
     path("reply/<int:reply_id>/", ReplyView.as_view()),
+    path("search/movie/", MovieSearchView.as_view()),
+    path("search/celebrity/", CelebritySearchView.as_view()),
+    path("genre/", GenreView.as_view())
 
 ]
 

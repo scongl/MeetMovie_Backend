@@ -1,4 +1,5 @@
 import json
+import math
 
 from django.http import HttpResponse
 from django.views import View
@@ -9,12 +10,41 @@ from django.db.models import Q
 
 class AllCelebrityView(View):
     def get(self, request):
-        celebrities_info = Celebrity.objects.values()
+        limit = request.GET.get("limit")
+        page = request.GET.get("offset")
+
+        if not all([limit, page]):
+            return HttpResponse(content=json.dumps({"status": "缺少部分参数"}, ensure_ascii=False))
+
+        try:
+            limit = int(limit)
+            page = int(page)
+        except ValueError:
+            return HttpResponse(content=json.dumps({"status": "参数类型错误"}, ensure_ascii=False))
+
+        if limit <= 0 or page <= 0:
+            return HttpResponse(content=json.dumps({"status": "参数错误"}, ensure_ascii=False))
+
+        start = limit * (page - 1)
+        total_item = Celebrity.objects.count()
+        total_page = math.ceil(total_item / limit)
+
+        if start > total_item:
+            return HttpResponse(content=json.dumps({"status": "超出数据范围"}, ensure_ascii=False))
+
+        end = min(start + limit, total_item)
+
+        celebrities_info = Celebrity.objects.all()[start: end]
         celebrity_list = []
 
         for i in celebrities_info:
-            celebrity_list.append(i)
-        return HttpResponse(content=json.dumps(celebrity_list, ensure_ascii=False))
+            celebrity_list.append(i.to_dict())
+
+        meta = {"total_page": total_page, "total_item": total_item, "current_page": page}
+
+        dic = {"meta": meta, "celebrities": celebrity_list}
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
 
 class CelebrityView(View):
@@ -24,7 +54,47 @@ class CelebrityView(View):
         if len(celebrity) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
 
-        dic = celebrity.values().get(id=celebrity_id)
+        dic = celebrity.get(id=celebrity_id).to_dict()
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
+
+
+class CelebritySearchView(View):
+    def get(self, request):
+        limit = request.GET.get("limit")
+        page = request.GET.get("offset")
+        query = request.GET.get("query")
+
+        if not all([limit, page, query]):
+            return HttpResponse(content=json.dumps({"status": "缺少部分参数"}, ensure_ascii=False))
+
+        try:
+            limit = int(limit)
+            page = int(page)
+        except ValueError:
+            return HttpResponse(content=json.dumps({"status": "参数类型错误"}, ensure_ascii=False))
+
+        if limit <= 0 or page <= 0:
+            return HttpResponse(content=json.dumps({"status": "参数错误"}, ensure_ascii=False))
+
+        start = limit * (page - 1)
+        total_item = Celebrity.objects.filter(celebrity_name__contains=query).count()
+        total_page = math.ceil(total_item / limit)
+
+        if start > total_item:
+            return HttpResponse(content=json.dumps({"status": "超出数据范围"}, ensure_ascii=False))
+
+        end = min(start + limit, total_item)
+
+        celebrity_info = Celebrity.objects.filter(celebrity_name__contains=query)[start: end]
+        celebrity_list = []
+
+        for i in celebrity_info:
+            celebrity_list.append(i.to_dict())
+
+        meta = {"total_page": total_page, "total_item": total_item, "current_page": page}
+
+        dic = {"meta": meta, "celebrities": celebrity_list}
 
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
@@ -55,11 +125,11 @@ class CelebrityCooperateView(View):
             movie_list.append(i.get("movie_id"))
 
         celebrities = Celebrity.objects.filter(Q(position__movie_id__in=movie_list),
-                                               ~Q(id=celebrity_id)).distinct().values()
+                                               ~Q(id=celebrity_id)).distinct()
 
         celebrity_list = []
         for i in celebrities:
-            celebrity_list.append(i)
+            celebrity_list.append(i.to_dict())
 
         dic = {"id": celebrity_id, "celebrities": celebrity_list}
 
@@ -71,11 +141,10 @@ class CelebrityMoviesView(View):
         if len(Celebrity.objects.filter(id=celebrity_id)) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
 
-        movies = Movie.objects.filter(position__celebrity_id=celebrity_id).values()
+        movies = Movie.objects.filter(position__celebrity_id=celebrity_id)
         movie_list = []
         for i in movies:
-            i['vote_average'] = i["vote_sum"] / i["vote_count"] if i["vote_count"] > 0 else 0.0
-            movie_list.append(i)
+            movie_list.append(i.to_dict())
 
         dic = {"id": celebrity_id, "movies": movie_list}
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))

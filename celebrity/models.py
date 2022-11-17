@@ -17,6 +17,12 @@ class Celebrity(models.Model):
     gender = models.SmallIntegerField(choices=GENDER_CHOICES)
     career = models.CharField(max_length=255, blank=True)
 
+    def to_dict(self):
+        d = {"celebrity_name": self.celebrity_name, "biography": self.biography, "image": self.image,
+             "birthday": self.birthday, "place_of_birth": self.place_of_birth, "gender": self.gender,
+             "career": self.career}
+        return d
+
 
 class CelebrityImage(models.Model):
     celebrity = models.ForeignKey(Celebrity, on_delete=models.CASCADE)

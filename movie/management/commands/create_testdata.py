@@ -1,7 +1,9 @@
+import datetime
 import random
+import re
 
 from django.core.management.base import BaseCommand, CommandError
-from movie.models import Movie, Position, Genre, MovieImage, MovieTrailer
+from movie.models import Movie, Position, Genre, Language, MovieImage, MovieTrailer
 from celebrity.models import Celebrity, CelebrityImage
 from comment.models import Review, Rating, Reply
 from account.models import UserInfo
@@ -22,6 +24,7 @@ class Command(BaseCommand):
         CelebrityImage.objects.all().delete()
 
         Genre.objects.all().delete()
+        Language.objects.all().delete()
         Position.objects.all().delete()
         l = Movie.objects.all()
         for i in l:
@@ -47,8 +50,8 @@ class Command(BaseCommand):
                 value = random.randint(1, 10)
                 content = user.username
                 Rating.objects.create(movie=movie, author=user, value=value, content=content)
-                movie.vote_sum += 1
-                movie.vote_count += value
+                movie.vote_count += 1
+                movie.vote_sum += value
                 movie.save()
 
         for movie in movies:
@@ -77,13 +80,19 @@ class Command(BaseCommand):
         created_cele_url = {}
 
         created_genres = {}
+        created_languages = {}
 
         for movie_info in movie_list:
+            date = movie_info['datePublished']
+            y_m_d = re.search(r"(\d+)-(\d+)-(\d+)", date)
+            if not y_m_d:
+                print(movie_info['name'])
+
             movie = Movie.objects.create(
                 movie_name=movie_info['name'],
                 overview=movie_info['description'],
-                duration=movie_info['duration'][2:],
-                release_date=movie_info['datePublished'],
+                duration=movie_info['duration'],
+                release_date=datetime.date(int(y_m_d.group(1)), int(y_m_d.group(2)), int(y_m_d.group(3))),
                 image=movie_info['image'],
                 region=movie_info['region'],
                 vote_count=0,
@@ -99,6 +108,16 @@ class Command(BaseCommand):
                     created_genres[i] = genre
 
                 movie.genres.add(genre)
+
+            languages = movie_info['language']
+            for i in languages:
+                if i in created_languages:
+                    language = created_languages[i]
+                else:
+                    language = Language.objects.create(name=i)
+                    created_languages[i] = language
+
+                movie.languages.add(language)
 
             all_photos = movie_info["all_photos"]
             for i in all_photos:
