@@ -56,7 +56,6 @@ class RegisterView(View):
 
         username = info.get("username")
         password = info.get("password")
-        # TODO: 是否增加nickname
 
         if not all([username, password]):
             return HttpResponse(content=json.dumps({"error": "缺少参数"}, ensure_ascii=False))
@@ -69,7 +68,7 @@ class RegisterView(View):
             return HttpResponse(content=json.dumps({"error": "用户名已存在"}, ensure_ascii=False))
 
         else:
-            UserInfo.objects.create_user(username=username, password=password)
+            UserInfo.objects.create_user(username=username, password=password, nickname=username)
             return HttpResponse(content=json.dumps({"string": "注册成功"}, ensure_ascii=False))
 
 

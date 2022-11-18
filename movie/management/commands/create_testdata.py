@@ -38,17 +38,26 @@ class Command(BaseCommand):
     def create_rating_and_comment(self):
         movies = Movie.objects.all()
 
+        content = "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
+                  "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！"
+
         user_pool = []
         for i in range(1, 101):
             name = "test" + str(i)
-            user = UserInfo.objects.create_user(username=name, nickname=name, password="123", avatar="")
+            user = UserInfo.objects.create_user(username=name, nickname=name, password="123",
+                                                avatar="https://img9.doubanio.com/view/celebrity/raw/public/p1622711304.75.jpg")
             user_pool.append(user)
 
         for movie in movies:
             users = random.sample(user_pool, 5)
             for user in users:
                 value = random.randint(1, 10)
-                content = user.username
                 Rating.objects.create(movie=movie, author=user, value=value, content=content)
                 movie.vote_count += 1
                 movie.vote_sum += value
@@ -58,7 +67,6 @@ class Command(BaseCommand):
             users = random.sample(user_pool, 5)
             for user in users:
                 title = user.username
-                content = user.username
                 review = Review.objects.create(title=title, content=content, author=user, movie=movie)
 
                 reply_users = random.sample(user_pool, 5)
@@ -127,7 +135,7 @@ class Command(BaseCommand):
                 MovieTrailer.objects.create(movie=movie, path=trailer)
 
             celebrity_list = movie_info['director'] + movie_info['author'] + \
-                            movie_info['actor'][0: min(6, len(movie_info['actor']))]  # 演员栏最多保存了6个
+                             movie_info['actor'][0: min(6, len(movie_info['actor']))]  # 演员栏最多保存了6个
 
             position_type = [0] * len(movie_info['director']) + [1] * len(movie_info['author']) + \
                             [2] * min(6, len(movie_info['actor']))  # 演员栏最多保存了6个

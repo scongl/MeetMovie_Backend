@@ -28,6 +28,32 @@ class AllReviewView(View):
         return HttpResponse(content=json.dumps(review_list, ensure_ascii=False))
 
 
+class ReviewLatestView(View):
+    def get(self, request):
+        reviews = Review.objects.order_by("-create_at")
+        review_list = []
+
+        for review in reviews:
+            author = review.author
+            movie = review.movie
+
+            d = review.to_dict()
+
+            author_details = {"username": author.username, "nickname": author.nickname,
+                              "id": author.id, "avatar": author.avatar}
+            movie_details = {"movie_name": movie.movie_name, "movie_id": movie.id,
+                             "movie_poster_path": movie.image}
+
+            d["author_details"] = author_details
+            d["movie_details"] = movie_details
+
+            review_list.append(d)
+
+        return HttpResponse(content=json.dumps(review_list, ensure_ascii=False))
+
+
+
+
 class ReviewView(View):
     def get(self, request, review_id):
         review_set = Review.objects.filter(id=review_id)
@@ -94,6 +120,20 @@ class ReviewView(View):
         return HttpResponse(content=json.dumps({"status": "删除成功"}, ensure_ascii=False))
 
 
+class ReviewLikeView(View):
+    def post(self, request, review_id):
+        review_set = Review.objects.filter(id=review_id)
+        if len(review_set) == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到影评"}, ensure_ascii=False))
+
+        # 目前设定不需登录
+        review = review_set.first()
+        review.likes += 1
+        review.save()
+
+        return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
+
+
 class ReviewReplyView(View):
     def get(self, request, review_id):
         review_set = Review.objects.filter(id=review_id)
@@ -115,7 +155,9 @@ class ReviewReplyView(View):
 
             reply_list.append(d)
 
-        return HttpResponse(content=json.dumps(reply_list, ensure_ascii=False))
+        dic = {"replies": reply_list, "reply_cnt": len(reply_list)}
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
     def post(self, request, review_id):
         review_set = Review.objects.filter(id=review_id)

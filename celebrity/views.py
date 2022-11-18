@@ -141,7 +141,7 @@ class CelebrityMoviesView(View):
         if len(Celebrity.objects.filter(id=celebrity_id)) == 0:
             return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
 
-        movies = Movie.objects.filter(position__celebrity_id=celebrity_id)
+        movies = Movie.objects.filter(position__celebrity_id=celebrity_id).distinct()
         movie_list = []
         for i in movies:
             movie_list.append(i.to_dict())

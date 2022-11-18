@@ -226,6 +226,35 @@ class MovieCelebritiesView(View):
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
 
+class MovieStaffView(View):
+    def get(self, request, movie_id):
+        if Movie.objects.filter(id=movie_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+
+        position = request.GET.get('position')
+
+        if not position:
+            return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
+
+        try:
+            position = int(position)
+        except ValueError:
+            return HttpResponse(content=json.dumps({"status": "参数类型错误"}, ensure_ascii=False))
+
+        if position not in [0, 1, 2]:
+            return HttpResponse(content=json.dumps({"status": "参数错误"}, ensure_ascii=False))
+
+        staff_set = Celebrity.objects.filter(position__movie_id=movie_id, position__position=position)
+        staff_list = []
+
+        for i in staff_set:
+            staff_list.append(i.to_dict())
+
+        dic = {"id": movie_id, "staffs": staff_list}
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
+
+
 class MovieReviewView(View):
     def get(self, request, movie_id):
         if len(Movie.objects.filter(id=movie_id)) == 0:
@@ -252,6 +281,7 @@ class MovieReviewView(View):
                 reply_list.append(reply_dic)
 
             review_dic["replies"] = reply_list
+            review_dic["reply_cnt"] = len(reply_list)
 
             review_list.append(review_dic)
 
