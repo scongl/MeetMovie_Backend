@@ -11,7 +11,7 @@ class UserInfo(AbstractUser):
     introduction = models.CharField(max_length=300, verbose_name="个人简介", blank=True)
     nickname = models.CharField(max_length=150)
 
-    avatar = models.CharField(max_length=2047)
+    avatar = models.ImageField(upload_to='User/avatar/', default='User/avatar/initial.jpg')
 
     prefer_genres = models.ManyToManyField(Genre)
 
@@ -22,8 +22,9 @@ class UserInfo(AbstractUser):
         pass
 
     def to_dict(self):
+        # 图片路径返回相对url
         d = {"id": self.id, "username": self.username, "nickname": self.nickname,
-             "introduction": self.introduction, "avatar": self.avatar,
+             "introduction": self.introduction, "avatar": self.avatar.url,
              "email": self.email, "create_at": self.date_joined.strftime("%Y-%m-%d %H:%M:%S")}
 
         return d

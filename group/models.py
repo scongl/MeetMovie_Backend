@@ -4,7 +4,7 @@ from movie.models import Movie
 
 
 class Group(models.Model):
-    avatar = models.CharField(max_length=2047)          # 兴趣组的图片
+    avatar = models.ImageField(upload_to='Group/avatar/', default='Group/avatar/initial.jpg')          # 兴趣组的封面
     introduction = models.TextField()
     create_at = models.DateField(auto_now_add=True)
 

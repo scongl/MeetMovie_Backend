@@ -1,4 +1,5 @@
 import json
+import os.path
 
 from django.http import HttpResponse
 from django.contrib import auth
@@ -120,6 +121,30 @@ class UserInfoView(View):
         d["prefer_types"] = genre_list
 
         return HttpResponse(content=json.dumps(d, ensure_ascii=False))
+
+
+class UploadAvatarView(View):
+    def post(self, request, user_id):
+        # 图片通过表单发送
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+
+        avatar = request.FILES.get('avatar')
+        if not avatar:
+            return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
+
+        suffix = os.path.splitext(avatar.name)[1]
+        if not suffix or suffix.lower() not in ['.jpeg', '.png', '.jpg', '.webp']:
+            return HttpResponse(content=json.dumps({"status": "文件格式不对"}, ensure_ascii=False))
+
+        # TODO: 目前修改头像后不会将原先无用的图片删除掉
+        user = UserInfo.objects.get(id=user_id)
+        user.avatar = avatar
+        user.save()
+
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
+
+
 
 
 
