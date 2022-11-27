@@ -1,6 +1,5 @@
 import json
 
-from django.shortcuts import render
 from django.views import View
 from group.models import Group
 from django.http import HttpResponse
@@ -27,12 +26,19 @@ class GroupJoinView(View):
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
         group = Group.objects.get(group_id)
-        group.members.filter()
+        group.members.add(request.user)
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
+    def delete(self, request, group_id):
+        if Group.objects.filter(id=group_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到小组"}, ensure_ascii=False))
 
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
-
-
-
+        group = Group.objects.get(group_id)
+        # 用户未加入过小组不会有影响
+        group.members.remove(request.user)
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
 

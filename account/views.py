@@ -7,7 +7,9 @@ from django.views import View
 
 from account.models import UserInfo
 from comment.models import Review, Reply
-from movie.models import Genre
+from movie.models import Movie, Genre
+from celebrity.models import Celebrity
+from group.models import Group
 
 
 class LoginView(View):
@@ -145,8 +147,156 @@ class UploadAvatarView(View):
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
 
+class UserMovieView(View):
+    def get(self, request, user_id):
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+
+        user = UserInfo.objects.get(id=user_id)
+        movie_list = []
+        for movie in user.like_movies.all():
+            d = movie.to_dict()
+            movie_list.append(d)
+
+        return HttpResponse(content=json.dumps(movie_list, ensure_ascii=False))
 
 
+class UserCelebrityView(View):
+    def get(self, request, user_id):
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+
+        user = UserInfo.objects.get(id=user_id)
+        celebrity_list = []
+        for celebrity in user.like_celebrities.all():
+            d = celebrity.to_dict()
+            celebrity_list.append(d)
+
+        return HttpResponse(content=json.dumps(celebrity_list, ensure_ascii=False))
+
+
+class UserStarMovieView(View):
+    def post(self, request, user_id, movie_id):
+        # 用户必须登录且只能修改自己的
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+        if Movie.objects.filter(id=movie_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        if request.user.id != user_id:
+            # TODO: 管理员也可修改
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        # 若已添加则无影响
+        request.user.like_movies.add(movie_id)
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
+
+    def delete(self, request, user_id, movie_id):
+        # 用户必须登录且只能修改自己的
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+        if Movie.objects.filter(id=movie_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        if request.user.id != user_id:
+            # TODO: 管理员也可修改
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        request.user.like_movies.remove(movie_id)
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
+
+
+class UserStarCelebrityView(View):
+    def post(self, request, user_id, celebrity_id):
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+        if Celebrity.objects.filter(id=celebrity_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        if request.user.id != user_id:
+            # TODO: 管理员也可修改
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        # 若已添加则无影响
+        request.user.like_celebrities.add(celebrity_id)
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
+
+    def delete(self, request, user_id, celebrity_id):
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+        if Celebrity.objects.filter(id=celebrity_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        if request.user.id != user_id:
+            # TODO: 管理员也可修改
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        request.user.like_celebrities.remove(celebrity_id)
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
+
+
+class UserGroupView(View):
+    def get(self, request, user_id):
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+
+        groups = Group.objects.filter(members=user_id)
+        group_list = []
+        for group in groups:
+            group_list.append(group.to_dict())
+
+        return HttpResponse(content=json.dumps(group_list, ensure_ascii=False))
+
+
+class UserUpdateView(View):
+    def post(self, request, user_id):
+        if UserInfo.objects.filter(id=user_id).count() == 0:
+            return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        if request.user.id != user_id:
+            return HttpResponse(content=json.dumps({"status": "无修改权限"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+
+        info = json.loads(request.body)
+        username = info.get('username')
+        nickname = info.get('nickname')
+        introduction = info.get('introduction')
+        prefer_types = info.get('prefer_types')
+        email = info.get('email')
+
+        if not all([username, nickname, introduction, prefer_types, email]):
+            return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
+
+        user.username = username
+        user.nickname = nickname
+        user.introduction = introduction
+        user.email = email
+        user.prefer_genres.clear()
+        for i in prefer_types:
+            g = Genre.objects.filter(name=i)
+            if len(g) == 0:
+                continue
+            genre = g.first()
+            user.prefer_genres.add(genre)
+
+        user.save()
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
 
 

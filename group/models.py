@@ -12,7 +12,7 @@ class Group(models.Model):
     movie = models.ManyToManyField(Movie)               # 关于电影的兴趣小组
 
     def to_dict(self):
-        d = {"id": self.id, "avatar": self.avatar, "create_at": self.create_at.strftime("%Y-%m-%d"),
+        d = {"id": self.id, "avatar": self.avatar.url, "create_at": self.create_at.strftime("%Y-%m-%d"),
              "introduction": self.introduction}
         return d
 
