@@ -86,7 +86,7 @@ class UserReviewView(View):
         author = user_set.first()
 
         author_details = {"username": author.username, "nickname": author.nickname,
-                          "id": author.id, "avatar": author.avatar}
+                          "id": author.id, "avatar": author.avatar.url}
         review_list = []
         for review in reviews:
             d = {"id": review.id, "title": review.title, "content": review.content,

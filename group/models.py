@@ -18,8 +18,35 @@ class Group(models.Model):
 
 
 class Discussion(models.Model):
+    # 帖子
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     author = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
 
-    title = models.CharField(max_length=50)
-    content = models.TextField()
+    title = models.CharField(max_length=100)
+    content = models.CharField(max_length=10000)
+
+    create_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+    def to_dict(self):
+        d = {"id": self.id, "content": self.content, "title": self.title,
+             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
+             "update_at": self.update_at.strftime("%Y-%m-%d %H:%M:%S")}
+        return d
+
+
+class Comment(models.Model):
+    # 帖子的回复
+    content = models.CharField(max_length=10000)
+    author = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE)
+
+    create_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
+
+    def to_dict(self):
+        d = {"id": self.id, "content": self.content,
+             "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
+             "update_at": self.update_at.strftime("%Y-%m-%d %H:%M:%S")}
+        return d
+

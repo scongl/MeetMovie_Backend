@@ -269,7 +269,7 @@ class MovieReviewView(View):
             review_dic = i.to_dict()
 
             review_dic["author_details"] = {"username": user.username, "nickname": user.nickname,
-                                            "id": user.id, "avatar": user.avatar}
+                                            "id": user.id, "avatar": user.avatar.url}
 
             replies = Reply.objects.filter(review_id=i.id)
             reply_list = []
@@ -277,7 +277,7 @@ class MovieReviewView(View):
                 reply_dic = j.to_dict()
                 author = j.author
                 reply_dic["author_details"] = {"username": author.username, "nickname": author.nickname,
-                                               "id": author.id, "avatar": author.avatar}
+                                               "id": author.id, "avatar": author.avatar.url}
                 reply_list.append(reply_dic)
 
             review_dic["replies"] = reply_list
@@ -332,7 +332,7 @@ class MovieRatingView(View):
                 info = i.to_dict()
 
                 info["author_details"] = {"username": author.username, "nickname": author.nickname,
-                                          "avatar": author.avatar, "id": author.id}
+                                          "avatar": author.avatar.url, "id": author.id}
 
                 if i.author == request.user:
                     t = info
@@ -346,7 +346,7 @@ class MovieRatingView(View):
                 author = i.author
                 info = i.to_dict()
                 info["author_details"] = {"username": author.username, "nickname": author.nickname,
-                                          "avatar": author.avatar, "id": author.id}
+                                          "avatar": author.avatar.url, "id": author.id}
                 rating_list.append(info)
 
             dic["rating"] = rating_list

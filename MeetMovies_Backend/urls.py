@@ -27,6 +27,7 @@ import account.views
 import celebrity.urls
 import comment.urls
 import movie.urls
+import group.urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -36,6 +37,7 @@ urlpatterns = [
     path("celebrity/", include(celebrity.urls)),
     path("movie/", include(movie.urls)),
     path("review/", include(comment.urls)),
+    path("group/", include(group.urls)),
 
     path("reply/<int:reply_id>/", ReplyView.as_view()),
     path("search/movie/", MovieSearchView.as_view()),

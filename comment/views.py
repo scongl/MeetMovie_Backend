@@ -16,7 +16,7 @@ class AllReviewView(View):
             d = review.to_dict()
 
             author_details = {"username": author.username, "nickname": author.nickname,
-                              "id": author.id, "avatar": author.avatar}
+                              "id": author.id, "avatar": author.avatar.url}
             movie_details = {"movie_name": movie.movie_name, "movie_id": movie.id,
                              "movie_poster_path": movie.image}
 
@@ -40,7 +40,7 @@ class ReviewLatestView(View):
             d = review.to_dict()
 
             author_details = {"username": author.username, "nickname": author.nickname,
-                              "id": author.id, "avatar": author.avatar}
+                              "id": author.id, "avatar": author.avatar.url}
             movie_details = {"movie_name": movie.movie_name, "movie_id": movie.id,
                              "movie_poster_path": movie.image}
 
@@ -50,8 +50,6 @@ class ReviewLatestView(View):
             review_list.append(d)
 
         return HttpResponse(content=json.dumps(review_list, ensure_ascii=False))
-
-
 
 
 class ReviewView(View):
@@ -68,7 +66,7 @@ class ReviewView(View):
         d = review.to_dict()
 
         author_details = {"username": author.username, "nickname": author.nickname,
-                          "id": author.id, "avatar": author.avatar}
+                          "id": author.id, "avatar": author.avatar.url}
 
         movie_details = {"movie_name": movie.movie_name, "movie_id": movie.id,
                          "movie_poster_path": movie.image}
@@ -149,7 +147,7 @@ class ReviewReplyView(View):
             d = reply.to_dict()
 
             author_details = {"username": author.username, "nickname": author.nickname,
-                              "id": author.id, "avatar": author.avatar}
+                              "id": author.id, "avatar": author.avatar.url}
 
             d["author_details"] = author_details
 
@@ -222,4 +220,7 @@ class ReplyView(View):
         reply.delete()
 
         return HttpResponse(content=json.dumps({"status": "删除成功"}, ensure_ascii=False))
+
+
+
 
