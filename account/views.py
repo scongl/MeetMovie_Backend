@@ -299,4 +299,14 @@ class UserUpdateView(View):
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
 
+class CurrentUserInfoView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"isLogin": False}, ensure_ascii=False))
+
+        dic = request.user.to_dict()
+        dic['isLogin'] = True
+
+        return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
+
 
