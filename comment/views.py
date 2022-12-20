@@ -151,6 +151,18 @@ class ReviewLikeView(View):
 
         return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
 
+    def delete(self, request, review_id):
+        if not Review.objects.filter(id=review_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到影评"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        review = Review.objects.get(id=review_id)
+        review.liked_user.remove(request.user)
+
+        return HttpResponse(content=json.dumps({"status": "删除成功"}, ensure_ascii=False))
+
 
 class ReviewCurrentLikeView(View):
     def get(self, request, review_id):

@@ -284,20 +284,23 @@ class UserUpdateView(View):
         prefer_types = info.get('prefer_types')
         email = info.get('email')
 
-        if not all([username, nickname, introduction, prefer_types, email]):
-            return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
+        if username is not None:
+            user.username = username
+        if nickname is not None:
+            user.nickname = nickname
+        if introduction is not None:
+            user.introduction = introduction
+        if email is not None:
+            user.email = email
 
-        user.username = username
-        user.nickname = nickname
-        user.introduction = introduction
-        user.email = email
-        user.prefer_genres.clear()
-        for i in prefer_types:
-            g = Genre.objects.filter(name=i)
-            if len(g) == 0:
-                continue
-            genre = g.first()
-            user.prefer_genres.add(genre)
+        if prefer_types is not None:
+            user.prefer_genres.clear()
+            for i in prefer_types:
+                g = Genre.objects.filter(name=i)
+                if len(g) == 0:
+                    continue
+                genre = g.first()
+                user.prefer_genres.add(genre)
 
         user.save()
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
