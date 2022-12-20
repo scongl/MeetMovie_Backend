@@ -9,14 +9,14 @@ class UserInfo(AbstractUser):
     # 暂时未添加avatar字段
 
     introduction = models.CharField(max_length=300, verbose_name="个人简介", blank=True)
-    nickname = models.CharField(max_length=150)
+    nickname = models.CharField(max_length=150, verbose_name='昵称')
 
-    avatar = models.ImageField(upload_to='User/avatar/', default='User/avatar/initial.jpg')
+    avatar = models.ImageField(upload_to='User/avatar/', default='User/avatar/initial.jpg', verbose_name='头像')
 
-    prefer_genres = models.ManyToManyField(Genre)
+    prefer_genres = models.ManyToManyField(Genre, verbose_name='喜爱的电影类型')
 
-    like_movies = models.ManyToManyField(Movie)
-    like_celebrities = models.ManyToManyField(Celebrity)
+    like_movies = models.ManyToManyField(Movie, verbose_name='收藏的电影')
+    like_celebrities = models.ManyToManyField(Celebrity, verbose_name='收藏的影人')
 
     class Meta(AbstractUser.Meta):
         pass
@@ -29,7 +29,8 @@ class UserInfo(AbstractUser):
 
         return d
 
-
+    def __str__(self):
+        return self.username
 
 
 

@@ -8,5 +8,7 @@ urlpatterns = [
     path("<int:group_id>/info/", group.views.GroupInfoView.as_view()),
     path("<int:group_id>/member/", group.views.GroupMemberView.as_view()),
     path("<int:group_id>/discussion/", group.views.GroupDiscussionView.as_view()),
+    path("<int:group_id>/is_member/", group.views.GroupIsMemberView.as_view()),
+    path("<int:group_id>/discussion/add/", group.views.GroupAddDiscussionView.as_view()),
 
 ]

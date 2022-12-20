@@ -21,6 +21,9 @@ from django.urls import path, include
 from comment.views import ReplyView
 from movie.views import MovieSearchView, GenreView
 from celebrity.views import CelebritySearchView
+from group.views import DiscussionRandomView, DiscussionView, DiscussionCommentView, DiscussionLikeView, \
+    DiscussionAddCommentView
+
 
 import account.urls
 import account.views
@@ -42,7 +45,12 @@ urlpatterns = [
     path("reply/<int:reply_id>/", ReplyView.as_view()),
     path("search/movie/", MovieSearchView.as_view()),
     path("search/celebrity/", CelebritySearchView.as_view()),
-    path("genre/", GenreView.as_view())
+    path("genre/", GenreView.as_view()),
+    path("discussion/random/", DiscussionRandomView.as_view()),
+    path("discussion/<int:discussion_id>/", DiscussionView.as_view()),
+    path("discussion/<int:discussion_id>/comment/", DiscussionCommentView.as_view()),
+    path("discussion/<int:discussion_id>/like/", DiscussionLikeView.as_view()),
+    path("discussion/<int:discussion_id>/comment/add", DiscussionAddCommentView.as_view()),
 
 ]
 
