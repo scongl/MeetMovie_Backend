@@ -25,7 +25,7 @@ class GroupJoinView(View):
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
-        group = Group.objects.get(group_id)
+        group = Group.objects.get(id=group_id)
         group.members.add(request.user)
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
@@ -36,7 +36,7 @@ class GroupJoinView(View):
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
-        group = Group.objects.get(group_id)
+        group = Group.objects.get(id=group_id)
         # 用户未加入过小组不会有影响
         group.members.remove(request.user)
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
