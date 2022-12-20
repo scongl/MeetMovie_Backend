@@ -30,7 +30,7 @@ class AllReviewView(View):
 
 class ReviewLatestView(View):
     def get(self, request):
-        reviews = Review.objects.order_by("-create_at")
+        reviews = Review.objects.order_by("-create_at")[:min(10, Review.objects.count())]
         review_list = []
 
         for review in reviews:
@@ -39,10 +39,30 @@ class ReviewLatestView(View):
 
             d = review.to_dict()
 
-            author_details = {"username": author.username, "nickname": author.nickname,
-                              "id": author.id, "avatar": author.avatar.url}
-            movie_details = {"movie_name": movie.movie_name, "movie_id": movie.id,
-                             "movie_poster_path": movie.image}
+            author_details = author.to_dict()
+            movie_details = movie.to_dict()
+
+            d["author_details"] = author_details
+            d["movie_details"] = movie_details
+
+            review_list.append(d)
+
+        return HttpResponse(content=json.dumps(review_list, ensure_ascii=False))
+
+
+class ReviewRandomView(View):
+    def get(self, request):
+        reviews = Review.objects.order_by('?')[:min(10, Review.objects.count())]
+        review_list = []
+
+        for review in reviews:
+            author = review.author
+            movie = review.movie
+
+            d = review.to_dict()
+
+            author_details = author.to_dict()
+            movie_details = movie.to_dict()
 
             d["author_details"] = author_details
             d["movie_details"] = movie_details

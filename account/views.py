@@ -126,8 +126,14 @@ class UserInfoView(View):
 class UploadAvatarView(View):
     def post(self, request, user_id):
         # 图片通过表单发送
-        if UserInfo.objects.filter(id=user_id).count() == 0:
+        if not UserInfo.objects.filter(id=user_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        if request.user.id != user_id:
+            return HttpResponse(content=json.dumps({"status": "无修改权限"}, ensure_ascii=False))
 
         avatar = request.FILES.get('avatar')
         if not avatar:
@@ -176,9 +182,9 @@ class UserCelebrityView(View):
 class UserStarMovieView(View):
     def post(self, request, user_id, movie_id):
         # 用户必须登录且只能修改自己的
-        if UserInfo.objects.filter(id=user_id).count() == 0:
+        if not UserInfo.objects.filter(id=user_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到用户"}, ensure_ascii=False))
-        if Movie.objects.filter(id=movie_id).count() == 0:
+        if not Movie.objects.filter(id=movie_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
 
         if not request.user.is_authenticated:
