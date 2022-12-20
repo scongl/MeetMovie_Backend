@@ -51,7 +51,9 @@ class Command(BaseCommand):
         user_pool = []
         for i in range(1, 101):
             name = "test" + str(i)
-            user = UserInfo.objects.create_user(username=name, nickname=name, password="123")
+            user: UserInfo = UserInfo.objects.create_user(username=name, nickname=name, password="123")
+            user.introduction = "test_introduction" + str(i)
+            user.save()
             user_pool.append(user)
 
         for movie in movies:
