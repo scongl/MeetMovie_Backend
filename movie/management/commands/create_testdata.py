@@ -7,6 +7,7 @@ from movie.models import Movie, Position, Genre, Language, MovieImage, MovieTrai
 from celebrity.models import Celebrity, CelebrityImage
 from comment.models import Review, Rating, Reply
 from account.models import UserInfo
+from group.models import Group
 
 import json
 
@@ -72,9 +73,30 @@ class Command(BaseCommand):
                 for reply_user in reply_users:
                     Reply.objects.create(content=reply_user.username, author=reply_user, review=review)
 
+    def create_star_movie_celebrity(self):
+        movies = Movie.objects.all()
+        celebrities = Celebrity.objects.all()[:1000]
+        users = UserInfo.objects.all()
+
+        for t in users:
+            to_insert_movie = random.sample(list(movies), 3)
+            for movie in to_insert_movie:
+                t.like_movies.add(movie)
+
+            to_insert_celebrity = random.sample(list(celebrities), 3)
+            for celebrity in to_insert_celebrity:
+                t.like_celebrities.add(celebrity)
+
+    def create_group(self):
+        users = UserInfo.objects.all()
+        for i in range(10):
+            g = Group.objects.create(name="group" + str(i), introduction=str(i))
+            for j in random.sample(list(users), 5):
+                g.members.add(j)
+
     def handle(self, *args, **options):
         # 首先删除之前表中的所有数据
-        self.delete_all_data()
+        # self.delete_all_data()
 
         movies_file = open("movies.json", "r", encoding='utf-8')
         movie_list = json.load(movies_file)
@@ -174,5 +196,7 @@ class Command(BaseCommand):
                 )
 
         self.create_rating_and_comment()
+        self.create_star_movie_celebrity()
+        self.create_group()
 
         self.stdout.write("创建数据成功")

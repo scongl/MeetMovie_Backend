@@ -49,7 +49,7 @@ class Review(models.Model):
         d = {"id": self.id, "title": self.title, "content": self.content,
              "create_at": self.create_at.strftime("%Y-%m-%d %H:%M:%S"),
              "update_at": self.update_at.strftime("%Y-%m-%d %H:%M:%S"),
-             "likes": self.likes}
+             "likes": self.likes, "reply_count": self.reply_set.count()}
 
         return d
 

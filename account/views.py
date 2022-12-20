@@ -89,9 +89,7 @@ class UserReviewView(View):
                           "id": author.id, "avatar": author.avatar.url}
         review_list = []
         for review in reviews:
-            d = {"id": review.id, "title": review.title, "content": review.content,
-                 "create_at": review.create_at.strftime("%Y-%m-%d %H:%M:%S"),
-                 "update_at": review.update_at.strftime("%Y-%m-%d %H:%M:%S")}
+            d = review.to_dict()
 
             movie = review.movie
             movie_details = {"movie_name": movie.movie_name, "movie_id": movie.id,
