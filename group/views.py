@@ -181,11 +181,40 @@ class DiscussionLikeView(View):
         if not Discussion.objects.filter(id=discussion_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到讨论"}, ensure_ascii=False))
 
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
         d = Discussion.objects.get(id=discussion_id)
-        d.likes = d.likes + 1
-        d.save()
+        d.liked_user.add(request.user)
 
         return HttpResponse(content=json.dumps({"status": "更新成功"}, ensure_ascii=False))
+
+    def delete(self, request, discussion_id):
+        if not Discussion.objects.filter(id=discussion_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到讨论"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        d = Discussion.objects.get(id=discussion_id)
+        d.liked_user.remove(request.user)
+
+        return HttpResponse(content=json.dumps({"status": "更新成功"}, ensure_ascii=False))
+
+
+class DiscussionCurrentLikeView(View):
+    def get(self, request, discussion_id):
+        if not Discussion.objects.filter(id=discussion_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到讨论"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        d = Discussion.objects.get(id=discussion_id)
+        if d.liked_user.filter(id=request.user.id).exists():
+            return HttpResponse(content=json.dumps({"liked": True}, ensure_ascii=False))
+        else:
+            return HttpResponse(content=json.dumps({"liked": False}, ensure_ascii=False))
 
 
 class DiscussionAddCommentView(View):

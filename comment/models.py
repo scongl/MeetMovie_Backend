@@ -34,13 +34,13 @@ class Review(models.Model):
     title = models.CharField(max_length=50, verbose_name='标题')
     content = models.TextField(verbose_name='内容')                                            # 长评内容
 
-    author = models.ForeignKey(UserInfo, on_delete=models.CASCADE, verbose_name='作者', related_name='author')
+    author = models.ForeignKey(UserInfo, on_delete=models.CASCADE, verbose_name='作者', related_name='review_author')
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, verbose_name='电影')
 
     create_at = models.DateTimeField(auto_now_add=True, verbose_name='创建于')
     update_at = models.DateTimeField(auto_now=True, verbose_name='修改于')
 
-    liked_user = models.ManyToManyField(UserInfo, verbose_name='点过赞的用户', related_name='liked_user')
+    liked_user = models.ManyToManyField(UserInfo, verbose_name='点过赞的用户', related_name='review_liked_user')
 
     class Meta:
         verbose_name_plural = verbose_name = '影评'

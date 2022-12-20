@@ -7,7 +7,7 @@ from movie.models import Movie, Position, Genre, Language, MovieImage, MovieTrai
 from celebrity.models import Celebrity, CelebrityImage
 from comment.models import Review, Rating, Reply
 from account.models import UserInfo
-from group.models import Group
+from group.models import Group, Discussion, Comment
 
 import json
 
@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
         UserInfo.objects.all().delete()
 
-    def create_rating_and_comment(self):
+    def create_rating_and_review(self):
         movies = Movie.objects.all()
 
         content = "我觉得这部电影非常的好看！我觉得这部电影非常的好看！我觉得这部电影非常的好看！" \
@@ -74,6 +74,18 @@ class Command(BaseCommand):
                 reply_users = random.sample(user_pool, 5)
                 for reply_user in reply_users:
                     Reply.objects.create(content=reply_user.username, author=reply_user, review=review)
+
+    def create_discussion_and_comment(self):
+        groups = list(Group.objects.all())
+        users = list(UserInfo.objects.all())
+
+        for i in groups:
+            authors = random.sample(users, 4)
+            for j in authors:
+                d = Discussion.objects.create(group=i, author=j, title='title', content='discussion')
+                comment_author = random.sample(users, 2)
+                for k in comment_author:
+                    Comment.objects.create(discussion=d, author=k, content="comment")
 
     def create_star_movie_celebrity(self):
         movies = Movie.objects.all()
@@ -197,8 +209,9 @@ class Command(BaseCommand):
                     position=position_type[i]
                 )
 
-        self.create_rating_and_comment()
+        self.create_rating_and_review()
         self.create_star_movie_celebrity()
         self.create_group()
+        self.create_discussion_and_comment()
 
         self.stdout.write("创建数据成功")
