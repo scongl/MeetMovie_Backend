@@ -166,8 +166,8 @@ class MovieSearchView(View):
 
 class MovieView(View):
     def get(self, request, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         dic = Movie.objects.get(id=movie_id).to_dict()
 
@@ -184,8 +184,8 @@ class MovieView(View):
 
 class MovieImageView(View):
     def get(self, request, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         all_photos = MovieImage.objects.filter(movie_id=movie_id)
         dic = {"id": movie_id}
@@ -199,8 +199,8 @@ class MovieImageView(View):
 
 class MovieVideoView(View):
     def get(self, request, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         video = MovieTrailer.objects.filter(movie_id=movie_id).first()
         dic = {"id": movie_id}
@@ -212,8 +212,8 @@ class MovieVideoView(View):
 
 class MovieCelebritiesView(View):
     def get(self, request, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         celebrity_info = Celebrity.objects.filter(position__movie_id=movie_id).distinct()
         celebrity_list = []
@@ -228,8 +228,8 @@ class MovieCelebritiesView(View):
 
 class MovieStaffView(View):
     def get(self, request, movie_id):
-        if Movie.objects.filter(id=movie_id).count() == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         position = request.GET.get('position')
 
@@ -257,8 +257,8 @@ class MovieStaffView(View):
 
 class MovieReviewView(View):
     def get(self, request, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         reviews = Review.objects.filter(movie_id=movie_id).distinct()
 
@@ -290,8 +290,8 @@ class MovieReviewView(View):
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
     def post(self, request, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
@@ -312,12 +312,9 @@ class MovieReviewView(View):
 
 
 class MovieRatingView(View):
-    def movie_valid(self, movie_id):
-        if len(Movie.objects.filter(id=movie_id)) == 0:
-            return HttpResponse(content=json.dumps({"status": "未找到电影"}, ensure_ascii=False))
-
     def get(self, request, movie_id):
-        self.movie_valid(movie_id)
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         ratings = Rating.objects.filter(movie_id=movie_id)
         rating_list = []
@@ -355,7 +352,8 @@ class MovieRatingView(View):
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
     def post(self, request, movie_id):
-        self.movie_valid(movie_id)
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
@@ -397,7 +395,8 @@ class MovieRatingView(View):
             return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
 
     def delete(self, request, movie_id):
-        self.movie_valid(movie_id)
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
 
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
@@ -427,3 +426,18 @@ class GenreView(View):
             genre_list.append(i.to_dict())
 
         return HttpResponse(content=json.dumps({"genres": genre_list}, ensure_ascii=False))
+
+
+class MovieCurrentLikeView(View):
+    def get(self, request, movie_id):
+        if not Movie.objects.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"status": "电影不存在"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+        if user.like_movies.filter(id=movie_id).exists():
+            return HttpResponse(content=json.dumps({"liked": True}, ensure_ascii=False))
+        else:
+            return HttpResponse(content=json.dumps({"liked": False}, ensure_ascii=False))

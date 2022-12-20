@@ -278,14 +278,11 @@ class UserUpdateView(View):
         user: UserInfo = request.user
 
         info = json.loads(request.body)
-        username = info.get('username')
         nickname = info.get('nickname')
         introduction = info.get('introduction')
         prefer_types = info.get('prefer_types')
         email = info.get('email')
 
-        if username is not None:
-            user.username = username
         if nickname is not None:
             user.nickname = nickname
         if introduction is not None:

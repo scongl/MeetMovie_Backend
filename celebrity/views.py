@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.views import View
 from celebrity.models import Celebrity, CelebrityImage
 from movie.models import Movie, Position
+from account.models import UserInfo
 from django.db.models import Q
 
 
@@ -101,7 +102,7 @@ class CelebritySearchView(View):
 
 class CelebrityImagesView(View):
     def get(self, request, celebrity_id):
-        if len(Celebrity.objects.filter(id=celebrity_id)) == 0:
+        if not Celebrity.objects.filter(id=celebrity_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
 
         all_photos = CelebrityImage.objects.filter(celebrity_id=celebrity_id)
@@ -116,7 +117,7 @@ class CelebrityImagesView(View):
 
 class CelebrityCooperateView(View):
     def get(self, request, celebrity_id):
-        if len(Celebrity.objects.filter(id=celebrity_id)) == 0:
+        if not Celebrity.objects.filter(id=celebrity_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
 
         movie_ids = Position.objects.filter(celebrity_id=celebrity_id).distinct().values("movie_id")
@@ -138,7 +139,7 @@ class CelebrityCooperateView(View):
 
 class CelebrityMoviesView(View):
     def get(self, request, celebrity_id):
-        if len(Celebrity.objects.filter(id=celebrity_id)) == 0:
+        if not Celebrity.objects.filter(id=celebrity_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
 
         movies = Movie.objects.filter(position__celebrity_id=celebrity_id).distinct()
@@ -149,3 +150,17 @@ class CelebrityMoviesView(View):
         dic = {"id": celebrity_id, "movies": movie_list}
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
+
+class CelebrityCurrentLikeView(View):
+    def get(self, request, celebrity_id):
+        if not Celebrity.objects.filter(id=celebrity_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到影人"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+        if user.like_celebrities.filter(id=celebrity_id).exists():
+            return HttpResponse(content=json.dumps({"liked": True}, ensure_ascii=False))
+        else:
+            return HttpResponse(content=json.dumps({"liked": False}, ensure_ascii=False))
