@@ -14,3 +14,4 @@ class UserAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(UserInfo, UserAdmin)
+admin.site.site_header = '觅影后台管理'

@@ -4,7 +4,7 @@ from .models import Celebrity, CelebrityImage
 
 # Register your models here.
 class CelebrityAdmin(admin.ModelAdmin):
-    pass
+    list_per_page = 20
 
 
 admin.site.register(Celebrity, CelebrityAdmin)
