@@ -265,11 +265,11 @@ class MovieReviewView(View):
         review_list = []
 
         for i in reviews:
-            user = UserInfo.objects.get(review=i.id)
             review_dic = i.to_dict()
 
-            review_dic["author_details"] = {"username": user.username, "nickname": user.nickname,
-                                            "id": user.id, "avatar": user.avatar.url}
+            author = i.author
+            review_dic["author_details"] = {"username": author.username, "nickname": author.nickname,
+                                            "id": author.id, "avatar": author.avatar.url}
 
             replies = Reply.objects.filter(review_id=i.id)
             reply_list = []
