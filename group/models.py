@@ -10,7 +10,7 @@ class Group(models.Model):
     name = models.CharField(max_length=30, verbose_name='小组名')
     create_at = models.DateField(auto_now_add=True, verbose_name='创建于')
 
-    members = models.ManyToManyField(UserInfo, verbose_name='小组成员')          # 小组成员
+    members = models.ManyToManyField(UserInfo, verbose_name='小组成员', through="JoinTime")          # 小组成员
     movie = models.ManyToManyField(Movie, verbose_name='电影')               # 关于电影的兴趣小组
 
     class Meta:
@@ -24,6 +24,12 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class JoinTime(models.Model):
+    join_at = models.DateTimeField(auto_now_add=True, verbose_name='加入小组时间')
+    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
 
 
 class Discussion(models.Model):

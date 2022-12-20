@@ -1,7 +1,7 @@
 import json
 
 from django.views import View
-from group.models import Group, Discussion, Comment
+from group.models import Group, Discussion, Comment, JoinTime
 from django.http import HttpResponse
 
 
@@ -26,7 +26,7 @@ class GroupJoinView(View):
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
         group = Group.objects.get(id=group_id)
-        group.members.add(request.user)
+        JoinTime.objects.create(group=group, user=request.user)
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
     def delete(self, request, group_id):
@@ -37,8 +37,7 @@ class GroupJoinView(View):
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
         group = Group.objects.get(id=group_id)
-        # 用户未加入过小组不会有影响
-        group.members.remove(request.user)
+        JoinTime.objects.filter(group=group, user=request.user).delete()
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
 
@@ -62,7 +61,8 @@ class GroupMemberView(View):
         member_list = []
 
         for i in t.members.all():
-            member_list.append({"username": i.username, "nickname": i.nickname, "avatar": i.avatar.url, "id": i.id})
+            member_list.append({"username": i.username, "nickname": i.nickname, "avatar": i.avatar.url,
+                                "introduction": i.introduction, "id": i.id})
 
         t = {"group_members": member_list}
 
@@ -236,8 +236,22 @@ class DiscussionAddCommentView(View):
         return HttpResponse(content=json.dumps({"status": "添加成功"}, ensure_ascii=False))
 
 
+class GroupRecentMember(View):
+    def get(self, request, group_id):
+        if not Group.objects.filter(id=group_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到小组"}, ensure_ascii=False))
 
+        total_count = JoinTime.objects.filter(group_id=group_id).count()
 
+        join_times = JoinTime.objects.filter(group_id=group_id).order_by('-join_at')[:min(5, total_count)]
+
+        member_list = []
+        for i in join_times:
+            dic = i.user.to_dict()
+            dic["join_at"] = i.join_at.strftime("%Y-%m-%d %H:%M:%S")
+            member_list.append(dic)
+
+        return HttpResponse(content=json.dumps(member_list, ensure_ascii=False))
 
 
 

@@ -7,7 +7,7 @@ from movie.models import Movie, Position, Genre, Language, MovieImage, MovieTrai
 from celebrity.models import Celebrity, CelebrityImage
 from comment.models import Review, Rating, Reply
 from account.models import UserInfo
-from group.models import Group, Discussion, Comment
+from group.models import Group, Discussion, Comment, JoinTime
 
 import json
 
@@ -106,7 +106,7 @@ class Command(BaseCommand):
         for i in range(10):
             g = Group.objects.create(name="group" + str(i), introduction=str(i))
             for j in random.sample(list(users), 5):
-                g.members.add(j)
+                JoinTime.objects.create(group=g, user=j)
 
     def handle(self, *args, **options):
         # 首先删除之前表中的所有数据
