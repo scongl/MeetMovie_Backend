@@ -25,6 +25,9 @@ class GroupJoinView(View):
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
+        if JoinTime.objects.filter(group_id=group_id, user=request.user).exists():
+            return HttpResponse(content=json.dumps({"status": "用户已加入小组"}, ensure_ascii=False))
+
         group = Group.objects.get(id=group_id)
         JoinTime.objects.create(group=group, user=request.user)
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
