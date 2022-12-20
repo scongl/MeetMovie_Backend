@@ -18,6 +18,7 @@ class Group(models.Model):
 
     def to_dict(self):
         d = {"id": self.id, "avatar": self.avatar.url, "create_at": self.create_at.strftime("%Y-%m-%d"),
+             "member_count": self.members.count(),
              "introduction": self.introduction, "name": self.name}
         return d
 
