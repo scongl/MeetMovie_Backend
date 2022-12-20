@@ -365,7 +365,7 @@ class MovieRatingView(View):
         if not all([value, content]):
             return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
 
-        if value not in range(1, 11) or type(content) != str:
+        if value not in range(0, 11) or type(content) != str:
             return HttpResponse(content=json.dumps({"status": "参数不正确"}, ensure_ascii=False))
 
         user_id = request.user.id
