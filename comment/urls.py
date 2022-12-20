@@ -9,5 +9,6 @@ urlpatterns = [
     path("hotest/", comment.views.ReviewRandomView.as_view()),
     path("<int:review_id>/", comment.views.ReviewView.as_view()),
     path("<int:review_id>/reply/", comment.views.ReviewReplyView.as_view()),
-    path("<int:review_id>/like/", comment.views.ReviewLikeView.as_view())
+    path("<int:review_id>/like/", comment.views.ReviewLikeView.as_view()),
+    path("<int:review_id>/current_like/", comment.views.ReviewCurrentLikeView.as_view())
 ]

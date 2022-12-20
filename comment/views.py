@@ -140,16 +140,31 @@ class ReviewView(View):
 
 class ReviewLikeView(View):
     def post(self, request, review_id):
-        review_set = Review.objects.filter(id=review_id)
-        if len(review_set) == 0:
+        if not Review.objects.filter(id=review_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到影评"}, ensure_ascii=False))
 
-        # 目前设定不需登录
-        review = review_set.first()
-        review.likes += 1
-        review.save()
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        review = Review.objects.get(id=review_id)
+        review.liked_user.add(request.user)
 
         return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
+
+
+class ReviewCurrentLikeView(View):
+    def get(self, request, review_id):
+        if not Review.objects.filter(id=review_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到影评"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
+
+        review = Review.objects.get(id=review_id)
+        if review.liked_user.filter(id=request.user.id).exists():
+            return HttpResponse(content=json.dumps({"liked": True}, ensure_ascii=False))
+        else:
+            return HttpResponse(content=json.dumps({"liked": False}, ensure_ascii=False))
 
 
 class ReviewReplyView(View):
