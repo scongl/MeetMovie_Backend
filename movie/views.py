@@ -362,7 +362,7 @@ class MovieRatingView(View):
         value = info.get("value")
         content = info.get("content")
 
-        if not all([value, content]):
+        if value is None or content is None:
             return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
 
         if value not in range(0, 11) or type(content) != str:
