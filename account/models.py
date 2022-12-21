@@ -6,7 +6,6 @@ from celebrity.models import Celebrity
 
 class UserInfo(AbstractUser):
     # AbstractUser已存在username, password, 标记是否是管理员等属性
-    # 暂时未添加avatar字段
 
     introduction = models.CharField(max_length=300, verbose_name="个人简介", blank=True)
     nickname = models.CharField(max_length=150, verbose_name='昵称')

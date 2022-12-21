@@ -11,4 +11,5 @@ urlpatterns = [
     path("<int:group_id>/is_member/", group.views.GroupIsMemberView.as_view()),
     path("<int:group_id>/discussion/add/", group.views.GroupAddDiscussionView.as_view()),
     path("<int:group_id>/member/recent/", group.views.GroupRecentMember.as_view()),
+    path("<int:group_id>/discussion/random/", group.views.GroupDiscussionRandomView.as_view()),
 ]

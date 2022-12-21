@@ -3,7 +3,7 @@ from celebrity.models import Celebrity
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=20, verbose_name='类型')          # 标签类型
+    name = models.CharField(max_length=20, verbose_name='类型', unique=True)          # 标签类型
 
     class Meta:
         verbose_name_plural = verbose_name = '电影类型'

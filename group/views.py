@@ -239,6 +239,24 @@ class DiscussionAddCommentView(View):
         return HttpResponse(content=json.dumps({"status": "添加成功"}, ensure_ascii=False))
 
 
+class GroupDiscussionRandomView(View):
+    def get(self, request, group_id):
+        if not Group.objects.filter(id=group_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到小组"}, ensure_ascii=False))
+
+        max_count = Discussion.objects.filter(group_id=group_id).count()
+
+        discussions = Discussion.objects.filter(group_id=group_id).order_by('?')[:min(5, max_count)]
+
+        discussion_list = []
+        for d in discussions:
+            dic = d.to_dict()
+            dic["group_name"] = d.group.name
+            discussion_list.append(dic)
+
+        return HttpResponse(content=json.dumps(discussion_list, ensure_ascii=False))
+
+
 class GroupRecentMember(View):
     def get(self, request, group_id):
         if not Group.objects.filter(id=group_id).exists():
