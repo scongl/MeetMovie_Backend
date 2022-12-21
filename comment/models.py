@@ -29,6 +29,12 @@ class Rating(models.Model):
     def __str__(self):
         return self.content
 
+    def delete(self, *args, **kwargs):
+        self.movie.vote_sum -= self.value
+        self.movie.vote_count -= 1
+        self.movie.save()
+        super().delete(*args, **kwargs)
+
 
 class Review(models.Model):
     title = models.CharField(max_length=50, verbose_name='标题')

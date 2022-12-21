@@ -50,7 +50,7 @@ urlpatterns = [
     path("discussion/<int:discussion_id>/", DiscussionView.as_view()),
     path("discussion/<int:discussion_id>/comment/", DiscussionCommentView.as_view()),
     path("discussion/<int:discussion_id>/like/", DiscussionLikeView.as_view()),
-    path("discussion/<int:discussion_id>/comment/add", DiscussionAddCommentView.as_view()),
+    path("discussion/<int:discussion_id>/comment/add/", DiscussionAddCommentView.as_view()),
     path("discussion/<int:discussion_id>/current_like/", DiscussionCurrentLikeView.as_view()),
 ]
 

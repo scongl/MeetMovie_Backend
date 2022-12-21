@@ -26,12 +26,6 @@ class Group(models.Model):
         return self.name
 
 
-class JoinTime(models.Model):
-    join_at = models.DateTimeField(auto_now_add=True, verbose_name='加入小组时间')
-    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-
-
 class Discussion(models.Model):
     # 帖子
     group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name='兴趣小组')
@@ -80,3 +74,12 @@ class Comment(models.Model):
     def __str__(self):
         return self.content
 
+
+class JoinTime(models.Model):
+    join_at = models.DateTimeField(auto_now_add=True, verbose_name='加入小组时间')
+    user = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+
+    def delete(self, *args, **kwargs):
+        Discussion.objects.filter(group=self.group, author=self.user).delete()
+        super().delete(*args, **kwargs)

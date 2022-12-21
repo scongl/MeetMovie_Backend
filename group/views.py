@@ -40,7 +40,10 @@ class GroupJoinView(View):
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
         group = Group.objects.get(id=group_id)
-        JoinTime.objects.filter(group=group, user=request.user).delete()
+        if JoinTime.objects.filter(group=group, user=request.user).exists():
+            t = JoinTime.objects.get(group=group, user=request.user)
+            t.delete()
+
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
 
@@ -129,11 +132,14 @@ class GroupAddDiscussionView(View):
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
+        if not JoinTime.objects.filter(group_id=group_id, user=request.user).exists():
+            return HttpResponse(content=json.dumps({"status": "用户不属于本组"}, ensure_ascii=False))
+
         info = json.loads(request.body)
         title = info.get('title')
         content = info.get('content')
 
-        if not all([title, content]):
+        if title is None or content is None:
             return HttpResponse(content=json.dumps({"status": "缺少部分参数"}, ensure_ascii=False))
 
         Discussion.objects.create(group_id=group_id, author_id=request.user.id, title=title, content=content)
@@ -228,10 +234,15 @@ class DiscussionAddCommentView(View):
         if not request.user.is_authenticated:
             return HttpResponse(content=json.dumps({"status": "用户未登录"}, ensure_ascii=False))
 
+        discussion = Discussion.objects.get(id=discussion_id)
+
+        if not JoinTime.objects.filter(group_id=discussion.group.id, user=request.user).exists():
+            return HttpResponse(content=json.dumps({"status": "用户不属于本组"}, ensure_ascii=False))
+
         info = json.loads(request.body)
         content = info.get('content')
 
-        if not content:
+        if content is None:
             return HttpResponse(content=json.dumps({"status": "缺少部分参数"}, ensure_ascii=False))
 
         Comment.objects.create(discussion_id=discussion_id, content=content, author_id=request.user.id)

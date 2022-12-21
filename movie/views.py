@@ -407,13 +407,13 @@ class MovieRatingView(View):
             return HttpResponse(content=json.dumps({"status": "用户未提交过评分"}, ensure_ascii=False))
 
         rating = Rating.objects.get(movie_id=movie_id, author_id=user_id)
-        value = rating.value
+        # value = rating.value
         rating.delete()
 
-        movie = Movie.objects.get(id=movie_id)
-        movie.vote_count -= 1
-        movie.vote_sum -= value
-        movie.save()
+        # movie = Movie.objects.get(id=movie_id)
+        # movie.vote_count -= 1
+        # movie.vote_sum -= value
+        # movie.save()
 
         return HttpResponse(content=json.dumps({"status": "删除评分成功"}, ensure_ascii=False))
 
