@@ -373,11 +373,10 @@ class MovieRatingView(View):
         r = Rating.objects.filter(movie_id=movie_id, author_id=user_id)
         if len(r) == 0:  # 未提交过评分
             Rating.objects.create(author_id=user_id, movie_id=movie_id, value=value, content=content)
-            movie = Movie.objects.get(id=movie_id)
-
-            movie.vote_count += 1
-            movie.vote_sum += value
-            movie.save()
+            # movie = Movie.objects.get(id=movie_id)
+            # movie.vote_count += 1
+            # movie.vote_sum += value
+            # movie.save()
 
             return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
 
@@ -390,7 +389,6 @@ class MovieRatingView(View):
 
             movie = Movie.objects.get(id=movie_id)
             movie.vote_sum += value - old_value
-
             movie.save()
             return HttpResponse(content=json.dumps({"status": "提交成功"}, ensure_ascii=False))
 

@@ -29,6 +29,16 @@ class Rating(models.Model):
     def __str__(self):
         return self.content
 
+    def save(self, *args, **kwargs):
+        is_create = self.id is None
+
+        super().save(*args, **kwargs)
+
+        if is_create:
+            self.movie.vote_sum += self.value
+            self.movie.vote_count += 1
+            self.movie.save()
+
     def delete(self, *args, **kwargs):
         self.movie.vote_sum -= self.value
         self.movie.vote_count -= 1
