@@ -15,6 +15,20 @@ import json
 class Command(BaseCommand):
     help = "create test data"
 
+    def generate_name(self):
+        first = ['骑马', '帅气', '蓝色', '臃肿', '疯狂', '会飞', '努力', '多情', '生气', '绝命', '北部', '九龙']
+        second = ['博士', '射手', '扛把子', '火锅', '星星', '乌鸦', '老板', '斯巴达', '蝴蝶', '黑客', '猎人', '忍者']
+
+        a = first[random.randint(0, len(first) - 1)]
+        b = second[random.randint(0, len(second) - 1)]
+        return a + '的' + b
+
+    def generate_content(self, movie_name: str):
+        content = ["你真的看懂%s了吗？", "读%s", "%s剧情分析（无剧透）", '%s，当之无愧的好电影',
+                   '%s让我眼前一亮', '%s，略显无聊', '%s，徒有其表']
+        s = content[random.randint(0, len(content) - 1)]
+        return s % movie_name
+
     def delete_all_data(self):
         Reply.objects.all().delete()
         Review.objects.all().delete()
@@ -50,9 +64,9 @@ class Command(BaseCommand):
 
         user_pool = []
         for i in range(1, 101):
-            name = "test" + str(i)
-            user: UserInfo = UserInfo.objects.create_user(username=name, nickname=name, password="123")
-            user.introduction = "test_introduction" + str(i)
+            name = self.generate_name()
+            user: UserInfo = UserInfo.objects.create_user(username="user" + str(i), nickname=name, password="123")
+            user.introduction = "我是" + name
             user.save()
             user_pool.append(user)
 
@@ -60,7 +74,8 @@ class Command(BaseCommand):
             users = random.sample(user_pool, 5)
             for user in users:
                 value = random.randint(1, 10)
-                Rating.objects.create(movie=movie, author=user, value=value, content=content)
+                Rating.objects.create(movie=movie, author=user, value=value,
+                                      content=self.generate_content(movie.movie_name))
                 movie.vote_count += 1
                 movie.vote_sum += value
                 movie.save()
@@ -68,18 +83,22 @@ class Command(BaseCommand):
         for movie in movies:
             users = random.sample(user_pool, 5)
             for user in users:
-                title = user.username
-                review = Review.objects.create(title=title, content=content, author=user, movie=movie)
+                s = self.generate_content(movie.movie_name)
+
+                review = Review.objects.create(title=s, content=s, author=user, movie=movie)
 
                 reply_users = random.sample(user_pool, 5)
                 for reply_user in reply_users:
-                    Reply.objects.create(content=reply_user.username, author=reply_user, review=review)
+                    Reply.objects.create(content=self.generate_content(movie.movie_name), author=reply_user,
+                                         review=review)
 
     def create_discussion_and_comment(self):
         groups = list(Group.objects.all())
-        users = list(UserInfo.objects.all())
 
         for i in groups:
+            users = []
+            for t in JoinTime.objects.filter(group=i):
+                users.append(t.user)
             authors = random.sample(users, 4)
             for j in authors:
                 d = Discussion.objects.create(group=i, author=j, title='title', content='discussion')
@@ -105,7 +124,7 @@ class Command(BaseCommand):
         users = UserInfo.objects.all()
         for i in range(10):
             g = Group.objects.create(name="group" + str(i), introduction=str(i))
-            for j in random.sample(list(users), 5):
+            for j in random.sample(list(users), 15):
                 JoinTime.objects.create(group=g, user=j)
 
     def handle(self, *args, **options):
