@@ -31,7 +31,7 @@ class Discussion(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, verbose_name='兴趣小组')
     author = models.ForeignKey(UserInfo, on_delete=models.CASCADE, verbose_name='作者', related_name='discussion_author')
 
-    title = models.CharField(max_length=100, verbose_name='标题')
+    title = models.CharField(max_length=500, verbose_name='标题')
     content = models.CharField(max_length=10000, verbose_name='内容')
 
     liked_user = models.ManyToManyField(UserInfo, verbose_name='点过赞的人', related_name='discussion_liked_user')

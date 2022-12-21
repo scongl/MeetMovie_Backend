@@ -47,7 +47,7 @@ class Rating(models.Model):
 
 
 class Review(models.Model):
-    title = models.CharField(max_length=50, verbose_name='标题')
+    title = models.CharField(max_length=500, verbose_name='标题')
     content = models.TextField(verbose_name='内容')                                            # 长评内容
 
     author = models.ForeignKey(UserInfo, on_delete=models.CASCADE, verbose_name='作者', related_name='review_author')
