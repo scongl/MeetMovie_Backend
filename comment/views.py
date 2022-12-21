@@ -30,22 +30,26 @@ class AllReviewView(View):
 
 class ReviewLatestView(View):
     def get(self, request):
-        reviews = Review.objects.order_by("-create_at")[:min(10, Review.objects.count())]
+        reviews = Review.objects.order_by("-create_at")[:min(1000, Review.objects.count())]
+        movie_set = set({})
+
         review_list = []
 
         for review in reviews:
-            author = review.author
-            movie = review.movie
+            if len(review_list) < 10 and review.movie.id not in movie_set:
+                movie_set.add(review.movie.id)
+                author = review.author
+                movie = review.movie
 
-            d = review.to_dict()
+                d = review.to_dict()
 
-            author_details = author.to_dict()
-            movie_details = movie.to_dict()
+                author_details = author.to_dict()
+                movie_details = movie.to_dict()
 
-            d["author_details"] = author_details
-            d["movie_details"] = movie_details
+                d["author_details"] = author_details
+                d["movie_details"] = movie_details
 
-            review_list.append(d)
+                review_list.append(d)
 
         return HttpResponse(content=json.dumps(review_list, ensure_ascii=False))
 
