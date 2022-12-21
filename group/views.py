@@ -62,13 +62,12 @@ class GroupMemberView(View):
         if not Group.objects.filter(id=group_id).exists():
             return HttpResponse(content=json.dumps({"status": "未找到小组"}, ensure_ascii=False))
 
-        t = Group.objects.get(id=group_id)
-
         member_list = []
 
-        for i in t.members.all():
+        for t in JoinTime.objects.filter(group_id=group_id):
+            i = t.user
             member_list.append({"username": i.username, "nickname": i.nickname, "avatar": i.avatar.url,
-                                "introduction": i.introduction, "id": i.id})
+                                "introduction": i.introduction, "id": i.id, "join_at": t.join_at.strftime("%Y-%m-%d")})
 
         t = {"group_members": member_list}
 
@@ -118,7 +117,7 @@ class DiscussionRandomView(View):
         discussion_list = []
         for d in discussions:
             dic = d.to_dict()
-            dic["group_name"] = d.group.name
+            dic["group"] = {"group_name": d.group.name, "id": d.group.id}
             discussion_list.append(dic)
 
         return HttpResponse(content=json.dumps(discussion_list, ensure_ascii=False))
@@ -262,7 +261,7 @@ class GroupDiscussionRandomView(View):
         discussion_list = []
         for d in discussions:
             dic = d.to_dict()
-            dic["group_name"] = d.group.name
+            dic["group"] = {"group_name": d.group.name, "id": group_id}
             discussion_list.append(dic)
 
         return HttpResponse(content=json.dumps(discussion_list, ensure_ascii=False))
@@ -280,7 +279,7 @@ class GroupRecentMember(View):
         member_list = []
         for i in join_times:
             dic = i.user.to_dict()
-            dic["join_at"] = i.join_at.strftime("%Y-%m-%d %H:%M:%S")
+            dic["join_at"] = i.join_at.strftime("%Y-%m-%d")
             member_list.append(dic)
 
         return HttpResponse(content=json.dumps(member_list, ensure_ascii=False))
