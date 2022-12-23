@@ -59,8 +59,9 @@ class RegisterView(View):
 
         username = info.get("username")
         password = info.get("password")
+        email = info.get('email')
 
-        if not all([username, password]):
+        if not all([username, password, email]):
             return HttpResponse(content=json.dumps({"error": "缺少参数"}, ensure_ascii=False))
 
         if type(username) != str or type(password) != str:
@@ -71,7 +72,7 @@ class RegisterView(View):
             return HttpResponse(content=json.dumps({"error": "用户名已存在"}, ensure_ascii=False))
 
         else:
-            UserInfo.objects.create_user(username=username, password=password, nickname=username)
+            UserInfo.objects.create_user(username=username, password=password, nickname=username, email=email)
             return HttpResponse(content=json.dumps({"string": "注册成功"}, ensure_ascii=False))
 
 
