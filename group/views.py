@@ -269,7 +269,7 @@ class CommentView(View):
             return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
 
         user: UserInfo = request.user
-        if not (user.id == comment_id or user.is_staff):
+        if not (user.id == c.author.id or user.is_staff):
             return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
 
         c.delete()
