@@ -3,6 +3,8 @@ import json
 from django.views import View
 from group.models import Group, Discussion, Comment, JoinTime
 from django.http import HttpResponse
+from account.models import UserInfo
+import os
 
 
 class AllGroupView(View):
@@ -43,6 +45,62 @@ class GroupJoinView(View):
         if JoinTime.objects.filter(group=group, user=request.user).exists():
             t = JoinTime.objects.get(group=group, user=request.user)
             t.delete()
+
+        return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
+
+
+class GroupCreateView(View):
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无权限"}, ensure_ascii=False))
+        if not request.user.is_staff:
+            return HttpResponse(content=json.dumps({"status": "无权限"}, ensure_ascii=False))
+
+        info = json.loads(request.body)
+        name = info.get("name", "group")
+        introduction = info.get("introduction", "")
+
+        Group.objects.create(name=name, introduction=introduction)
+
+        return HttpResponse(content=json.dumps({"status": "创建成功"}, ensure_ascii=False))
+
+
+class GroupRemoveView(View):
+    def delete(self, request, group_id):
+        if not Group.objects.filter(id=group_id).exists():
+            return HttpResponse(content=json.dumps({"status": "小组不存在"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无权限"}, ensure_ascii=False))
+        if not request.user.is_staff:
+            return HttpResponse(content=json.dumps({"status": "无权限"}, ensure_ascii=False))
+
+        Group.objects.get(id=group_id).delete()
+
+        return HttpResponse(content=json.dumps({"status": "删除成功"}, ensure_ascii=False))
+
+
+class UploadAvatar(View):
+    def post(self, request, group_id):
+        if not Group.objects.filter(id=group_id).exists():
+            return HttpResponse(content=json.dumps({"status": "小组不存在"}, ensure_ascii=False))
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无权限"}, ensure_ascii=False))
+        if not request.user.is_staff:
+            return HttpResponse(content=json.dumps({"status": "无权限"}, ensure_ascii=False))
+
+        avatar = request.FILES.get('avatar')
+        if not avatar:
+            return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
+
+        suffix = os.path.splitext(avatar.name)[1]
+        if not suffix or suffix.lower() not in ['.jpeg', '.png', '.jpg', '.webp']:
+            return HttpResponse(content=json.dumps({"status": "文件格式不对"}, ensure_ascii=False))
+
+        g = Group.objects.get(id=group_id)
+        g.avatar = avatar
+        g.save()
 
         return HttpResponse(content=json.dumps({"status": "修改成功"}, ensure_ascii=False))
 
@@ -166,6 +224,23 @@ class DiscussionView(View):
 
         return HttpResponse(content=json.dumps(dic, ensure_ascii=False))
 
+    def delete(self, request, discussion_id):
+        if not Discussion.objects.filter(id=discussion_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到讨论"}, ensure_ascii=False))
+
+        d = Discussion.objects.get(id=discussion_id)
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+        if not (user == d.author or user.is_staff):
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        d.delete()
+
+        return HttpResponse(content=json.dumps({"status": "删除成功"}, ensure_ascii=False))
+
 
 class DiscussionCommentView(View):
     def get(self, request, discussion_id):
@@ -182,6 +257,24 @@ class DiscussionCommentView(View):
             comment_list.append(dic)
 
         return HttpResponse(content=json.dumps(comment_list, ensure_ascii=False))
+
+
+class CommentView(View):
+    def delete(self, request, comment_id):
+        if not Comment.objects.filter(id=comment_id).exists():
+            return HttpResponse(content=json.dumps({"status": "未找到评论"}, ensure_ascii=False))
+
+        c = Comment.objects.get(id=comment_id)
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+        if not (user.id == comment_id or user.is_staff):
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        c.delete()
+
+        return HttpResponse(content=json.dumps({"status": "删除成功"}, ensure_ascii=False))
 
 
 class DiscussionLikeView(View):

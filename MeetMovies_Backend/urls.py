@@ -22,7 +22,7 @@ from comment.views import ReplyView
 from movie.views import MovieSearchView, GenreView
 from celebrity.views import CelebritySearchView
 from group.views import DiscussionRandomView, DiscussionView, DiscussionCommentView, DiscussionLikeView, \
-    DiscussionAddCommentView, DiscussionCurrentLikeView
+    DiscussionAddCommentView, DiscussionCurrentLikeView, CommentView
 
 
 import account.urls
@@ -52,6 +52,7 @@ urlpatterns = [
     path("discussion/<int:discussion_id>/like/", DiscussionLikeView.as_view()),
     path("discussion/<int:discussion_id>/comment/add/", DiscussionAddCommentView.as_view()),
     path("discussion/<int:discussion_id>/current_like/", DiscussionCurrentLikeView.as_view()),
+    path("comment/<int:comment_id>/", CommentView.as_view())
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -3,7 +3,7 @@ import json
 from django.http import HttpResponse
 from django.views import View
 from comment.models import Review, Reply
-
+from account.models import UserInfo
 
 class AllReviewView(View):
     def get(self, request):
@@ -133,8 +133,12 @@ class ReviewView(View):
             return HttpResponse(content=json.dumps({"status": "未找到影评"}, ensure_ascii=False))
 
         review = review_set.first()
-        # TODO: 管理员也可删除
-        if not request.user.is_authenticated or review.author.id != request.user.id:
+
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+        if not (review.author.id == request.user.id or user.is_staff):
             return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
 
         review.delete()
@@ -219,7 +223,7 @@ class ReviewReplyView(View):
         info = json.loads(request.body)
         content = info.get("content")
 
-        if not content:
+        if content is None:
             return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
 
         if type(content) != str:
@@ -240,7 +244,7 @@ class ReplyView(View):
         info = json.loads(request.body)
         content = info.get("content")
 
-        if not content:
+        if content is None:
             return HttpResponse(content=json.dumps({"status": "缺少参数"}, ensure_ascii=False))
 
         if type(content) != str:
@@ -264,8 +268,11 @@ class ReplyView(View):
 
         reply = reply_set.first()
 
-        # TODO: 管理员权限
-        if not request.user.is_authenticated or reply.author.id != request.user.id:
+        if not request.user.is_authenticated:
+            return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
+
+        user: UserInfo = request.user
+        if not (reply.author.id == user.id or user.is_staff):
             return HttpResponse(content=json.dumps({"status": "无删除权限"}, ensure_ascii=False))
 
         reply.delete()

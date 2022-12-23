@@ -12,4 +12,7 @@ urlpatterns = [
     path("<int:group_id>/discussion/add/", group.views.GroupAddDiscussionView.as_view()),
     path("<int:group_id>/member/recent/", group.views.GroupRecentMember.as_view()),
     path("<int:group_id>/discussion/random/", group.views.GroupDiscussionRandomView.as_view()),
+    path("create/", group.views.GroupCreateView.as_view()),
+    path("<int:group_id>/remove/", group.views.GroupRemoveView.as_view()),
+    path("<int:group_id>/uploadavatar/", group.views.UploadAvatar.as_view())
 ]

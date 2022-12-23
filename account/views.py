@@ -29,12 +29,13 @@ class LoginView(View):
             return HttpResponse(content=json.dumps({"status": "参数类型不正确"}, ensure_ascii=False))
 
         # 查询是否有对应用户
-        user = auth.authenticate(username=username, password=password)
+        user: UserInfo = auth.authenticate(username=username, password=password)
 
         if user:
             # 此处会创建session, 并返回sessionId
             auth.login(request, user)
-            return HttpResponse(content=json.dumps({"string": "登录成功"}, ensure_ascii=False))
+            admin = "admin" if user.is_staff else "normalUser"
+            return HttpResponse(content=json.dumps({"string": "登录成功", "role": admin}, ensure_ascii=False))
         else:
             # 不存在对应用户
             return HttpResponse(content=json.dumps({"error": "用户名或密码错误"}, ensure_ascii=False))
