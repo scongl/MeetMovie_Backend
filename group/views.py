@@ -355,6 +355,7 @@ class GroupDiscussionRandomView(View):
         for d in discussions:
             dic = d.to_dict()
             dic["group"] = {"group_name": d.group.name, "id": group_id}
+            dic["author"] = d.author.to_dict()
             discussion_list.append(dic)
 
         return HttpResponse(content=json.dumps(discussion_list, ensure_ascii=False))
